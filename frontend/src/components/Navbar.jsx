@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useCart } from "../cart/CartContext";
 
-export default function Navbar({ cartCount = 0 }) {
+export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const { count } = useCart();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -45,13 +47,13 @@ export default function Navbar({ cartCount = 0 }) {
         {/* Cart */}
         <Link to="/cart" style={{ position: "relative", color: "#888", textDecoration: "none", fontSize: "18px" }}>
           🛒
-          {cartCount > 0 && (
+          {count > 0 && (
             <span style={{
               position: "absolute", top: "-6px", right: "-6px",
               background: "#E8C547", color: "#000", fontSize: "10px",
               width: "16px", height: "16px", borderRadius: "50%",
               display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700,
-            }}>{cartCount}</span>
+            }}>{count}</span>
           )}
         </Link>
 
