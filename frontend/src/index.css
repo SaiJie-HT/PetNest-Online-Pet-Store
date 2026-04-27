@@ -1,27 +1,5 @@
-@import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
-
-@keyframes spotlight {
-  0% { opacity: 0; transform: translate(-72%, -62%) scale(0.5); }
-  100% { opacity: 1; transform: translate(-50%, -40%) scale(1); }
-}
-
-.animate-spotlight {
-  animation: spotlight 2s ease forwards;
-}
-
-* {
-  font-family: 'DM Sans', sans-serif;
+html, body, #root {
+  min-height: 100%;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  background: #0A0A0A;
-}
-
-#root {
-  width: 100%;
-  max-width: 100%;
 }

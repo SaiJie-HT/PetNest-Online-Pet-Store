@@ -1,79 +1,98 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { fetchCart } from "../utils/api";
 
-export default function Navbar({ cartCount = 0 }) {
-  const [scrolled, setScrolled] = useState(false);
+export default function Navbar() {
+  const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+    async function loadCart() {
+      try {
+        const cart = await fetchCart();
+        const count =
+          cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+        setCartCount(count);
+      } catch (error) {
+        setCartCount(0);
+      }
+    }
+
+    loadCart();
+    window.addEventListener("cartUpdated", loadCart);
+    return () => window.removeEventListener("cartUpdated", loadCart);
   }, []);
 
+  const linkStyle = {
+    color: "#d1d5db",
+    textDecoration: "none",
+    fontSize: "14px",
+    fontWeight: 500,
+  };
+
   return (
-    <nav style={{
-      position: "fixed", top: "20px", left: "50%", transform: "translateX(-50%)",
-      zIndex: 50, display: "flex", alignItems: "center", justifyContent: "space-between",
-      gap: "32px", padding: "10px 24px",
-      borderRadius: "999px",
-      border: "1px solid rgba(255,255,255,0.1)",
-      background: scrolled ? "rgba(10,10,10,0.9)" : "rgba(10,10,10,0.6)",
-      backdropFilter: "blur(16px)",
-      transition: "all 0.3s ease",
-      width: "min(700px, 90vw)",
-    }}>
-      {/* Logo */}
-      <Link to="/" style={{ textDecoration: "none", fontWeight: 800, fontSize: "17px", color: "white", whiteSpace: "nowrap" }}>
+    <nav
+      style={{
+        position: "fixed",
+        top: "18px",
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 1000,
+        width: "92%",
+        maxWidth: "1100px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "14px 24px",
+        borderRadius: "999px",
+        background: "rgba(10, 10, 10, 0.82)",
+        border: "1px solid rgba(255,255,255,0.12)",
+        backdropFilter: "blur(14px)",
+        boxShadow: "0 12px 40px rgba(0,0,0,0.35)",
+      }}
+    >
+      <Link
+        to="/"
+        style={{
+          color: "white",
+          textDecoration: "none",
+          fontSize: "20px",
+          fontWeight: 800,
+        }}
+      >
         Pet<span style={{ color: "#E8C547" }}>Nest</span> 🐾
       </Link>
 
-      {/* Nav links */}
-      <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
-        {["Pets", "Categories", "About"].map(l => (
-          <Link key={l} to={l === "Pets" ? "/pets" : "/"} style={{
-            color: "#888", fontSize: "13px", textDecoration: "none",
-            transition: "color 0.2s",
-          }}
-            onMouseEnter={e => e.target.style.color = "white"}
-            onMouseLeave={e => e.target.style.color = "#888"}
-          >{l}</Link>
-        ))}
-      </div>
-
-      {/* Right side */}
-      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        {/* Cart */}
-        <Link to="/cart" style={{ position: "relative", color: "#888", textDecoration: "none", fontSize: "18px" }}>
-          🛒
-          {cartCount > 0 && (
-            <span style={{
-              position: "absolute", top: "-6px", right: "-6px",
-              background: "#E8C547", color: "#000", fontSize: "10px",
-              width: "16px", height: "16px", borderRadius: "50%",
-              display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700,
-            }}>{cartCount}</span>
-          )}
+      <div style={{ display: "flex", gap: "22px", alignItems: "center" }}>
+        <Link to="/" style={linkStyle}>
+          Home
+        </Link>
+        <Link to="/pets" style={linkStyle}>
+          Pets
+        </Link>
+        <Link to="/search" style={linkStyle}>
+          Search
+        </Link>
+        <Link to="/login" style={linkStyle}>
+          Sign In
+        </Link>
+        <Link to="/register" style={linkStyle}>
+          Register
         </Link>
 
-        {/* Login */}
-        <Link to="/login" style={{
-          padding: "6px 16px", borderRadius: "999px", fontSize: "13px",
-          border: "1px solid rgba(255,255,255,0.15)",
-          color: "#ccc", textDecoration: "none", transition: "all 0.2s",
-        }}
-          onMouseEnter={e => { e.target.style.borderColor = "rgba(255,255,255,0.4)"; e.target.style.color = "white"; }}
-          onMouseLeave={e => { e.target.style.borderColor = "rgba(255,255,255,0.15)"; e.target.style.color = "#ccc"; }}
-        >Login</Link>
-
-        {/* Sign up */}
-        <Link to="/register" style={{
-          padding: "6px 16px", borderRadius: "999px", fontSize: "13px", fontWeight: 600,
-          background: "linear-gradient(to bottom right, #f0d060, #E8C547)",
-          color: "#000", textDecoration: "none", transition: "all 0.2s",
-        }}
-          onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
-          onMouseLeave={e => e.currentTarget.style.opacity = "1"}
-        >Sign up</Link>
+        <Link
+          to="/cart"
+          style={{
+            color: "#000",
+            background: "#E8C547",
+            padding: "8px 16px",
+            borderRadius: "999px",
+            textDecoration: "none",
+            fontSize: "14px",
+            fontWeight: 700,
+          }}
+        >
+          Cart ({cartCount})
+        </Link>
       </div>
     </nav>
   );
