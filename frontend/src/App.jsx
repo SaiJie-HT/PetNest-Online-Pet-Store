@@ -5,7 +5,7 @@ import Pets from "./pages/Pets";
 import SignIn from "./pages/SignIn";
 import Register from "./pages/Register";
 import SearchPage from "./pages/SearchPage";
-import CartPage from "./pages/CartPage";
+import Cart from "./pages/Cart";
 
 export default function App() {
   return (
@@ -16,9 +16,10 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/pets" element={<Pets />} />
           <Route path="/search" element={<SearchPage />} />
-          <Route path="/cart" element={<CartPage />} />
+          <Route path="/cart" element={<Cart />} />
           <Route path="/login" element={<SignIn />} />
           <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<Register />} />
           <Route path="/register" element={<Register />} />
         </Routes>
       </main>

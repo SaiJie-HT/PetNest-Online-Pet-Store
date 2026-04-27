@@ -1,26 +1,8 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { fetchCart } from "../utils/api";
+import { useCart } from "../cart/CartContext";
 
 export default function Navbar() {
-  const [cartCount, setCartCount] = useState(0);
-
-  useEffect(() => {
-    async function loadCart() {
-      try {
-        const cart = await fetchCart();
-        const count =
-          cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
-        setCartCount(count);
-      } catch (error) {
-        setCartCount(0);
-      }
-    }
-
-    loadCart();
-    window.addEventListener("cartUpdated", loadCart);
-    return () => window.removeEventListener("cartUpdated", loadCart);
-  }, []);
+  const { count } = useCart();
 
   const linkStyle = {
     color: "#d1d5db",
@@ -63,21 +45,11 @@ export default function Navbar() {
       </Link>
 
       <div style={{ display: "flex", gap: "22px", alignItems: "center" }}>
-        <Link to="/" style={linkStyle}>
-          Home
-        </Link>
-        <Link to="/pets" style={linkStyle}>
-          Pets
-        </Link>
-        <Link to="/search" style={linkStyle}>
-          Search
-        </Link>
-        <Link to="/login" style={linkStyle}>
-          Sign In
-        </Link>
-        <Link to="/register" style={linkStyle}>
-          Register
-        </Link>
+        <Link to="/" style={linkStyle}>Home</Link>
+        <Link to="/pets" style={linkStyle}>Pets</Link>
+        <Link to="/search" style={linkStyle}>Search</Link>
+        <Link to="/login" style={linkStyle}>Sign In</Link>
+        <Link to="/signup" style={linkStyle}>Register</Link>
 
         <Link
           to="/cart"
@@ -91,7 +63,7 @@ export default function Navbar() {
             fontWeight: 700,
           }}
         >
-          Cart ({cartCount})
+          Cart ({count})
         </Link>
       </div>
     </nav>
