@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import Navbar from "../components/Navbar";
 import PetCard from "../components/PetCard";
 
 const SAMPLE_PETS = [
@@ -28,7 +27,7 @@ export default function Pets() {
 
   return (
     <div className="bg-[#0A0A0A] min-h-screen text-white">
-      <Navbar />
+
       <div className="max-w-7xl mx-auto px-6 pt-28 pb-16">
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <input

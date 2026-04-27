@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Spotlight } from "../components/Spotlight";
-import Navbar from "../components/Navbar";
 import { useRive } from "@rive-app/react-canvas";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
@@ -125,7 +124,6 @@ export default function Home() {
   return (
     <div style={{ background: "#0A0A0A", minHeight: "100vh", color: "white", overflowX: "hidden" }}>
       <HomeBackground />
-      <Navbar />
 
       {/* HERO */}
       <section style={{ width: "100%", height: "100vh", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", zIndex: 1 }}>
