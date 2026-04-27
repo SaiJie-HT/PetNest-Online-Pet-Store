@@ -14,7 +14,7 @@ function App() {
         <Route path="/pets" element={<Pets />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/login" element={<SignIn />} />
-        <Route path="/signup" element={<Register />} />
+        <Route path="/register" element={<Register />} />
 
       </Routes>
     </BrowserRouter>

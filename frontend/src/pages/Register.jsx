@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
+import supabase from "../authDatabase/authSupa.js";
+
 const ShaderMaterial = ({ source, uniforms }) => {
   const { size } = useThree();
   const ref = useRef(null);
@@ -67,7 +69,7 @@ const DotMatrix = ({ colors = [[232, 197, 71]], opacities, dotSize = 3, reverse 
     let colorsArray = [colors[0], colors[0], colors[0], colors[0], colors[0], colors[0]];
     if (colors.length === 2) colorsArray = [colors[0], colors[0], colors[0], colors[1], colors[1], colors[1]];
     return {
-      u_colors: { value: colorsArray.map(c => [c[0]/255, c[1]/255, c[2]/255]), type: "uniform3fv" },
+      u_colors: { value: colorsArray.map(c => [c[0] / 255, c[1] / 255, c[2] / 255]), type: "uniform3fv" },
       u_opacities: { value: ops, type: "uniform1fv" },
       u_total_size: { value: totalSize, type: "uniform1f" },
       u_dot_size: { value: dotSize, type: "uniform1f" },
@@ -175,13 +177,29 @@ export default function Register({ onRegister }) {
     return errs;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setErrors({});
-    setShowReverse(true);
-    setTimeout(() => setStep("success"), 2000);
+
+    const { error } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+      options: {
+        data: {
+          username: form.username
+        }
+      }
+    });
+
+    if (error) {
+      console.error("Error setting up account:", error.message);
+      alert("Failed to set up account: " + error.message);
+    } else {
+      setShowReverse(true);
+      setTimeout(() => setStep("success"), 2000);
+    }
   };
 
   const inputStyle = (hasError) => ({

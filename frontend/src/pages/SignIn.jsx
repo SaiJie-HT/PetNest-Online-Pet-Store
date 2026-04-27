@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
+import supabase from "../authDatabase/authSupa";
+
 // ── DOT MATRIX SHADER ──────────────────────────────────────────────────────
 
 const ShaderMaterial = ({ source, uniforms, maxFps = 60 }) => {
@@ -189,24 +191,48 @@ export default function SignIn({ onSignIn }) {
     if (step === "code") setTimeout(() => codeRefs.current[0]?.focus(), 500);
   }, [step]);
 
-  const handleEmailSubmit = (e) => {
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
-    if (email) setStep("code");
+    if (email) {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email,
+      });
+
+      if (error) {
+        console.error("Error sending code:", error.message);
+        alert("Failed to send code: " + error.message);
+      } else {
+        setStep("code");
+      }
+    }
   };
 
-  const handleCodeChange = (i, val) => {
+  const handleCodeChange = async (i, val) => {
     if (val.length > 1) return;
     const next = [...code];
     next[i] = val;
     setCode(next);
     if (val && i < 5) codeRefs.current[i + 1]?.focus();
     if (i === 5 && val && next.every(d => d)) {
-      setShowReverse(true);
-      setTimeout(() => setShowForward(false), 50);
-      setTimeout(() => {
-        setStep("success");
-        setTimeout(() => { if (onSignIn) onSignIn(); }, 1500);
-      }, 2000);
+      const fullCode = next.join("");
+      
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token: fullCode,
+        type: 'email',
+      });
+
+      if (error) {
+        console.error("Error verifying code:", error.message);
+        alert("Invalid code. Please try again.");
+      } else if (data.session) {
+        setShowReverse(true);
+        setTimeout(() => setShowForward(false), 50);
+        setTimeout(() => {
+          setStep("success");
+          setTimeout(() => { if (onSignIn) onSignIn(); }, 1500);
+        }, 2000);
+      }
     }
   };
 
@@ -219,6 +245,18 @@ export default function SignIn({ onSignIn }) {
     setCode(["", "", "", "", "", ""]);
     setShowReverse(false);
     setShowForward(true);
+  };
+
+  const handleResendCode = async () => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email,
+    });
+    
+    if (error) {
+      console.error("Error resending code:", error.message);
+    } else {
+      alert("A new code has been sent!");
+    }
   };
 
   return (
@@ -352,6 +390,7 @@ export default function SignIn({ onSignIn }) {
                   </div>
 
                   <p style={{ color: "#555", fontSize: "13px", cursor: "pointer" }}
+                    onClick={handleResendCode}
                     onMouseEnter={e => e.target.style.color = "#888"}
                     onMouseLeave={e => e.target.style.color = "#555"}
                   >Resend code</p>
