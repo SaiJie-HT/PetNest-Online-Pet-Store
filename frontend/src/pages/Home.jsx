@@ -1,54 +1,200 @@
+import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Spotlight } from "../components/Spotlight";
-import { useRive } from "@rive-app/react-canvas";
-
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Palette } from "lucide-react";
+import * as THREE from "three";
 import PetOrbit from "../components/PetOrbit";
 
-import * as THREE from "three";
-import { useRef, useMemo } from "react";
+const THEMES = {
+  night: {
+    name: "City Night",
+    page: "#070707",
+    surface: "rgba(8,8,8,0.94)",
+    surfaceSoft: "rgba(17,17,17,0.9)",
+    text: "#ffffff",
+    softText: "rgba(255,255,255,0.78)",
+    mutedText: "rgba(255,255,255,0.58)",
+    dimText: "rgba(255,255,255,0.28)",
+    accent: "#E8C547",
+    accentText: "#070707",
+    ring: "rgba(232,197,71,0.34)",
+    faintRing: "rgba(255,255,255,0.08)",
+    glow: "rgba(232,197,71,0.14)",
+    glowStrong: "rgba(232,197,71,0.42)",
+    node: "rgba(10,10,10,0.92)",
+    center: "radial-gradient(circle, rgba(232,197,71,0.14), rgba(8,8,8,0.96) 66%)",
+    popover: "rgba(8,8,8,0.94)",
+    track: "rgba(255,255,255,0.12)",
+    dots: [
+      [232 / 255, 197 / 255, 71 / 255],
+      [1, 1, 1],
+      [232 / 255, 197 / 255, 71 / 255],
+    ],
+  },
+  meadow: {
+    name: "Meadow Glow",
+    page: "#09110d",
+    surface: "rgba(7,17,12,0.92)",
+    surfaceSoft: "rgba(16,31,22,0.9)",
+    text: "#fffaf0",
+    softText: "rgba(255,250,240,0.78)",
+    mutedText: "rgba(255,250,240,0.62)",
+    dimText: "rgba(255,250,240,0.34)",
+    accent: "#9DD86A",
+    accentText: "#07110b",
+    ring: "rgba(157,216,106,0.36)",
+    faintRing: "rgba(255,250,240,0.1)",
+    glow: "rgba(157,216,106,0.14)",
+    glowStrong: "rgba(157,216,106,0.42)",
+    node: "rgba(8,20,13,0.93)",
+    center: "radial-gradient(circle, rgba(157,216,106,0.16), rgba(7,17,12,0.96) 66%)",
+    popover: "rgba(7,17,12,0.94)",
+    track: "rgba(255,250,240,0.14)",
+    dots: [
+      [157 / 255, 216 / 255, 106 / 255],
+      [232 / 255, 197 / 255, 71 / 255],
+      [1, 250 / 255, 240 / 255],
+    ],
+  },
+  sunrise: {
+    name: "Sunrise Yard",
+    page: "#120c08",
+    surface: "rgba(21,12,8,0.92)",
+    surfaceSoft: "rgba(35,20,13,0.88)",
+    text: "#fff8ed",
+    softText: "rgba(255,248,237,0.8)",
+    mutedText: "rgba(255,248,237,0.62)",
+    dimText: "rgba(255,248,237,0.34)",
+    accent: "#FF8A4C",
+    accentText: "#160a05",
+    ring: "rgba(255,138,76,0.34)",
+    faintRing: "rgba(255,248,237,0.1)",
+    glow: "rgba(255,138,76,0.16)",
+    glowStrong: "rgba(255,138,76,0.42)",
+    node: "rgba(25,13,8,0.93)",
+    center: "radial-gradient(circle, rgba(255,138,76,0.17), rgba(21,12,8,0.96) 66%)",
+    popover: "rgba(21,12,8,0.94)",
+    track: "rgba(255,248,237,0.14)",
+    dots: [
+      [255 / 255, 138 / 255, 76 / 255],
+      [232 / 255, 197 / 255, 71 / 255],
+      [255 / 255, 248 / 255, 237 / 255],
+    ],
+  },
+  coastal: {
+    name: "Coastal Calm",
+    page: "#061015",
+    surface: "rgba(5,16,22,0.92)",
+    surfaceSoft: "rgba(10,30,39,0.9)",
+    text: "#f2fbff",
+    softText: "rgba(242,251,255,0.8)",
+    mutedText: "rgba(242,251,255,0.62)",
+    dimText: "rgba(242,251,255,0.34)",
+    accent: "#64D2C8",
+    accentText: "#041114",
+    ring: "rgba(100,210,200,0.34)",
+    faintRing: "rgba(242,251,255,0.1)",
+    glow: "rgba(100,210,200,0.16)",
+    glowStrong: "rgba(100,210,200,0.42)",
+    node: "rgba(5,18,24,0.93)",
+    center: "radial-gradient(circle, rgba(100,210,200,0.16), rgba(5,16,22,0.96) 66%)",
+    popover: "rgba(5,16,22,0.94)",
+    track: "rgba(242,251,255,0.14)",
+    dots: [
+      [100 / 255, 210 / 255, 200 / 255],
+      [104 / 255, 162 / 255, 255 / 255],
+      [242 / 255, 251 / 255, 255 / 255],
+    ],
+  },
+  berry: {
+    name: "Berry Bloom",
+    page: "#130911",
+    surface: "rgba(20,8,18,0.92)",
+    surfaceSoft: "rgba(34,15,31,0.88)",
+    text: "#fff5fb",
+    softText: "rgba(255,245,251,0.8)",
+    mutedText: "rgba(255,245,251,0.62)",
+    dimText: "rgba(255,245,251,0.34)",
+    accent: "#F06AA6",
+    accentText: "#16060f",
+    ring: "rgba(240,106,166,0.34)",
+    faintRing: "rgba(255,245,251,0.1)",
+    glow: "rgba(240,106,166,0.15)",
+    glowStrong: "rgba(240,106,166,0.4)",
+    node: "rgba(22,9,19,0.93)",
+    center: "radial-gradient(circle, rgba(240,106,166,0.16), rgba(20,8,18,0.96) 66%)",
+    popover: "rgba(20,8,18,0.94)",
+    track: "rgba(255,245,251,0.14)",
+    dots: [
+      [240 / 255, 106 / 255, 166 / 255],
+      [232 / 255, 197 / 255, 71 / 255],
+      [255 / 255, 245 / 255, 251 / 255],
+    ],
+  },
+};
 
-const ShaderMesh = ({ source, uniforms }) => {
+const FEATURE_CARDS = [
+  { title: "Vet-checked pets", text: "Every animal is reviewed for health, temperament, and care needs before listing." },
+  { title: "Home-fit matching", text: "Compare energy, space, and routine so the pet fits your actual day-to-day life." },
+  { title: "Care-first listings", text: "Clear details help you choose with confidence, not impulse." },
+  { title: "Secure cart", text: "Save your favorites and review everything before moving forward." },
+];
+
+function ShaderMesh({ source, uniforms }) {
   const { size } = useThree();
   const ref = useRef(null);
+
   useFrame(({ clock }) => {
     if (!ref.current) return;
     ref.current.material.uniforms.u_time.value = clock.getElapsedTime();
   });
-  const getUniforms = () => {
-    const prepared = {};
-    for (const name in uniforms) {
-      const u = uniforms[name];
-      if (u.type === "uniform1f") prepared[name] = { value: u.value };
-      else if (u.type === "uniform1i") prepared[name] = { value: u.value };
-      else if (u.type === "uniform1fv") prepared[name] = { value: u.value };
-      else if (u.type === "uniform3fv") prepared[name] = { value: u.value.map(v => new THREE.Vector3().fromArray(v)) };
-    }
-    prepared["u_time"] = { value: 0 };
-    prepared["u_resolution"] = { value: new THREE.Vector2(size.width * 2, size.height * 2) };
-    return prepared;
-  };
-  const material = useMemo(() => new THREE.ShaderMaterial({
-    vertexShader: `precision mediump float; uniform vec2 u_resolution; out vec2 fragCoord; void main(){ gl_Position = vec4(position.xy, 0.0, 1.0); fragCoord = (position.xy + vec2(1.0)) * 0.5 * u_resolution; fragCoord.y = u_resolution.y - fragCoord.y; }`,
-    fragmentShader: source,
-    uniforms: getUniforms(),
-    glslVersion: THREE.GLSL3,
-    blending: THREE.CustomBlending,
-    blendSrc: THREE.SrcAlphaFactor,
-    blendDst: THREE.OneFactor,
-  }), [size.width, size.height, source]);
-  return <mesh ref={ref}><planeGeometry args={[2, 2]} /><primitive object={material} attach="material" /></mesh>;
-};
 
-const HomeBackground = () => {
-  const uniforms = useMemo(() => ({
-    u_colors: { value: [[232/255, 197/255, 71/255], [232/255, 197/255, 71/255], [232/255, 197/255, 71/255], [1, 1, 1], [1, 1, 1], [1, 1, 1]], type: "uniform3fv" },
-    u_opacities: { value: [0.3, 0.3, 0.3, 0.5, 0.5, 0.5, 0.8, 0.8, 0.8, 1], type: "uniform1fv" },
-    u_total_size: { value: 20, type: "uniform1f" },
-    u_dot_size: { value: 3, type: "uniform1f" },
-    u_reverse: { value: 0, type: "uniform1i" },
-  }), []);
+  const material = useMemo(() => {
+    const prepared = {
+      u_time: { value: 0 },
+      u_resolution: { value: new THREE.Vector2(size.width * 2, size.height * 2) },
+    };
+
+    for (const name in uniforms) {
+      const uniform = uniforms[name];
+      if (uniform.type === "uniform1f" || uniform.type === "uniform1i" || uniform.type === "uniform1fv") {
+        prepared[name] = { value: uniform.value };
+      }
+      if (uniform.type === "uniform3fv") {
+        prepared[name] = { value: uniform.value.map((value) => new THREE.Vector3().fromArray(value)) };
+      }
+    }
+
+    return new THREE.ShaderMaterial({
+      vertexShader: "precision mediump float; uniform vec2 u_resolution; out vec2 fragCoord; void main(){ gl_Position = vec4(position.xy, 0.0, 1.0); fragCoord = (position.xy + vec2(1.0)) * 0.5 * u_resolution; fragCoord.y = u_resolution.y - fragCoord.y; }",
+      fragmentShader: source,
+      uniforms: prepared,
+      glslVersion: THREE.GLSL3,
+      blending: THREE.CustomBlending,
+      blendSrc: THREE.SrcAlphaFactor,
+      blendDst: THREE.OneFactor,
+    });
+  }, [size.width, size.height, source, uniforms]);
+
+  return (
+    <mesh ref={ref}>
+      <planeGeometry args={[2, 2]} />
+      <primitive object={material} attach="material" />
+    </mesh>
+  );
+}
+
+function HomeBackground({ theme }) {
+  const uniforms = useMemo(
+    () => ({
+      u_colors: { value: [theme.dots[0], theme.dots[0], theme.dots[1], theme.dots[1], theme.dots[2], theme.dots[2]], type: "uniform3fv" },
+      u_opacities: { value: [0.22, 0.26, 0.3, 0.38, 0.45, 0.52, 0.66, 0.74, 0.82, 0.92], type: "uniform1fv" },
+      u_total_size: { value: 20, type: "uniform1f" },
+      u_dot_size: { value: 3, type: "uniform1f" },
+    }),
+    [theme],
+  );
 
   const source = `
     precision mediump float;
@@ -59,7 +205,6 @@ const HomeBackground = () => {
     uniform float u_total_size;
     uniform float u_dot_size;
     uniform vec2 u_resolution;
-    uniform int u_reverse;
     out vec4 fragColor;
     float PHI = 1.61803398874989484820459;
     float random(vec2 xy) { return fract(tan(distance(xy*PHI,xy)*0.5)*xy.x); }
@@ -83,179 +228,223 @@ const HomeBackground = () => {
   `;
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
+    <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", background: theme.page }}>
       <Canvas style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
         <ShaderMesh source={source} uniforms={uniforms} />
       </Canvas>
-      <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at center, rgba(0,0,0,0.88) 0%, transparent 100%)" }} />
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "40%", background: "linear-gradient(to bottom, #0A0A0A, transparent)" }} />
-      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "40%", background: "linear-gradient(to top, #0A0A0A, transparent)" }} />
-    </div>
-  );
-};
-
-function CuteCat() {
-  const { RiveComponent } = useRive({
-    src: "/src/assets/21546-40484-cute-cat.riv",
-    autoplay: true,
-  });
-
-  return (
-    <div style={{
-      width: "100%",
-      height: "100%",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-    }}>
-      <div style={{
-        width: "420px",
-        height: "420px",
-        borderRadius: "24px",
-        overflow: "hidden",
-      }}>
-        <RiveComponent style={{ width: "100%", height: "100%" }} />
-      </div>
+      <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at center, transparent 0%, ${theme.page} 88%)`, opacity: 0.86 }} />
+      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to bottom, ${theme.page}, transparent 22%, transparent 72%, ${theme.page})` }} />
     </div>
   );
 }
 
-export default function Home() {
+function HeroVideo() {
   return (
-    <div style={{ background: "#0A0A0A", minHeight: "100vh", color: "white", overflowX: "hidden" }}>
-      <HomeBackground />
+    <div style={{ position: "relative", width: "100%", height: "100%", minHeight: "420px", overflow: "hidden", borderRadius: "0 22px 22px 0" }}>
+      <video
+        src="/videos/pet-hero.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+      />
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, rgba(0,0,0,0.58), rgba(0,0,0,0.04) 58%, rgba(0,0,0,0.2))" }} />
+    </div>
+  );
+}
 
-      {/* HERO */}
-      <section style={{ width: "100%", height: "100vh", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", zIndex: 1 }}>
-        <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
-        <div style={{ margin: "0 auto", width: "90%", maxWidth: "1100px", height: "520px", background: "rgba(0,0,0,0.96)", borderRadius: "20px", border: "1px solid rgba(255,255,255,0.08)", position: "relative", overflow: "hidden", display: "flex" }}>
-          <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            style={{ color: "#888", fontSize: "14px", lineHeight: 1.7, maxWidth: "300px", marginBottom: "2rem" }}
-          >
-          </motion.p>
+function ThemeDock({ activeTheme, setActiveTheme, theme }) {
+  const themeKeys = Object.keys(THEMES);
+  const currentIndex = themeKeys.indexOf(activeTheme);
+  const nextTheme = themeKeys[(currentIndex + 1) % themeKeys.length];
 
-          {/* Left */}
-          <div style={{ flex: 1, padding: "3rem", display: "flex", flexDirection: "column", justifyContent: "center", position: "relative", zIndex: 10 }}>
-            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-              style={{ color: "#E8C547", fontSize: "11px", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "1.2rem" }}>
-              Welcome to PetNest 🐾
+  return (
+    <button
+      type="button"
+      aria-label={`Change theme. Current theme: ${THEMES[activeTheme].name}`}
+      title={`Theme: ${THEMES[activeTheme].name}`}
+      onClick={() => setActiveTheme(nextTheme)}
+      style={{
+        position: "fixed",
+        right: "24px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        zIndex: 80,
+        width: "48px",
+        height: "48px",
+        padding: 0,
+        borderRadius: "50%",
+        border: `1px solid ${theme.faintRing}`,
+        background: "rgba(8,8,8,0.74)",
+        color: theme.text,
+        backdropFilter: "blur(18px)",
+        boxShadow: `0 16px 42px rgba(0,0,0,0.34), 0 0 26px ${theme.glow}`,
+        display: "grid",
+        placeItems: "center",
+      }}
+    >
+      <Palette size={20} strokeWidth={2.2} />
+      <span
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          right: "7px",
+          bottom: "7px",
+          width: "10px",
+          height: "10px",
+          borderRadius: "50%",
+          background: theme.accent,
+          boxShadow: `0 0 14px ${theme.glowStrong}`,
+        }}
+      />
+    </button>
+  );
+}
+
+export default function Home() {
+  const [activeTheme, setActiveTheme] = useState("night");
+  const theme = THEMES[activeTheme];
+
+  return (
+    <div style={{ background: theme.page, minHeight: "100vh", color: theme.text, overflowX: "hidden" }}>
+      <HomeBackground theme={theme} />
+      <ThemeDock activeTheme={activeTheme} setActiveTheme={setActiveTheme} theme={theme} />
+
+      <section style={{ width: "100%", minHeight: "100vh", position: "relative", display: "flex", alignItems: "center", zIndex: 1, padding: "7rem 1.5rem 4rem" }}>
+        <div
+          style={{
+            margin: "0 auto",
+            width: "100%",
+            maxWidth: "1180px",
+            minHeight: "560px",
+            background: theme.surface,
+            borderRadius: "24px",
+            border: `1px solid ${theme.faintRing}`,
+            overflow: "hidden",
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 0.92fr) minmax(420px, 1.08fr)",
+            boxShadow: "0 28px 90px rgba(0,0,0,0.42)",
+          }}
+        >
+          <div style={{ padding: "4rem 3.5rem", display: "flex", flexDirection: "column", justifyContent: "center", position: "relative", zIndex: 2 }}>
+            <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
+              style={{ color: theme.accent, fontSize: "12px", fontWeight: 900, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: "1.3rem" }}>
+              NYC-only pet matching
             </motion.p>
 
-            <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }}
-              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 700, lineHeight: 1.1, background: "linear-gradient(to bottom, #ffffff, #666666)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: "1rem" }}>
+            <motion.h1 initial={{ opacity: 0, y: 26 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.1 }}
+              style={{ fontSize: "clamp(3rem, 6vw, 5.45rem)", fontWeight: 900, lineHeight: 0.98, color: theme.text, margin: "0 0 1.5rem", letterSpacing: 0 }}>
               Find Your<br />Forever<br />Friend.
             </motion.h1>
 
-            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
-              style={{ color: "#888", fontSize: "14px", lineHeight: 1.7, maxWidth: "300px", marginBottom: "2rem" }}>
-                          From Brooklyn to the Bronx — find dogs, cats, birds, and more across all five NYC boroughs. Your perfect companion is just around the corner.
+            <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.2 }}
+              style={{ color: theme.mutedText, fontSize: "16px", lineHeight: 1.75, maxWidth: "390px", margin: "0 0 2rem" }}>
+              Browse adoptable and shop-ready companions across Manhattan, Brooklyn, Queens, the Bronx, and Staten Island.
             </motion.p>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.45 }}
-              style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-              <Link to="/pets" style={{ background: "#E8C547", color: "#000", fontWeight: 600, padding: "10px 28px", borderRadius: "999px", fontSize: "13px", textDecoration: "none" }}>
+            <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.3 }}
+              style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "2rem" }}>
+              <Link to="/pets" style={{ background: theme.accent, color: theme.accentText, fontWeight: 900, padding: "13px 28px", borderRadius: "999px", fontSize: "14px", textDecoration: "none" }}>
                 Browse Pets
               </Link>
-              <Link to="/register" style={{ border: "1px solid rgba(255,255,255,0.2)", color: "white", padding: "10px 28px", borderRadius: "999px", fontSize: "13px", textDecoration: "none" }}>
+              <Link to="/register" style={{ border: `1px solid ${theme.faintRing}`, color: theme.text, padding: "13px 28px", borderRadius: "999px", fontSize: "14px", textDecoration: "none", fontWeight: 800 }}>
                 Create Account
               </Link>
             </motion.div>
+
           </div>
 
-          {/* Right — Cat */}
-          <div style={{ flex: 1, position: "relative" }}>
-            <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, rgba(232,197,71,0.15) 0%, transparent 70%)", filter: "blur(20px)" }} />
-            <CuteCat />
-          </div>
+          <HeroVideo />
         </div>
       </section>
+
       <div style={{ position: "relative", zIndex: 1 }}>
-        <PetOrbit />
+        <PetOrbit theme={theme} />
       </div>
 
+      <section style={{ maxWidth: "1120px", margin: "0 auto", padding: "4rem 2rem", position: "relative", zIndex: 1 }}>
+        <p style={{ color: theme.accent, fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", textAlign: "center", marginBottom: "12px", fontWeight: 800 }}>
+          Why PetNest
+        </p>
+        <h2 style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 850, textAlign: "center", color: theme.text, marginBottom: "2.5rem" }}>
+          Built for careful NYC pet choices.
+        </h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+          {FEATURE_CARDS.map((feature, index) => (
+            <motion.div
+              key={feature.title}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.08 }}
+              style={{
+                padding: "24px",
+                borderRadius: "16px",
+                border: `1px solid ${theme.faintRing}`,
+                background: theme.surfaceSoft,
+                boxShadow: "0 16px 50px rgba(0,0,0,0.22)",
+              }}
+            >
+              <div style={{ width: "34px", height: "3px", background: theme.accent, borderRadius: "999px", marginBottom: "18px" }} />
+              <h3 style={{ color: theme.text, fontWeight: 850, fontSize: "16px", marginBottom: "9px" }}>{feature.title}</h3>
+              <p style={{ color: theme.mutedText, fontSize: "13px", lineHeight: 1.65, margin: 0 }}>{feature.text}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
 
-{/* FEATURES with animated gold border */}
-<section style={{ maxWidth: "1100px", margin: "0 auto", padding: "5rem 2rem", position: "relative", zIndex: 1 }}>
-  <motion.p
-    initial={{ opacity: 0 }}
-    whileInView={{ opacity: 1 }}
-    viewport={{ once: true }}
-    style={{ color: "#E8C547", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", textAlign: "center", marginBottom: "12px" }}
-  >
-    Why PetNest
-  </motion.p>
-  <motion.h2
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    style={{ fontSize: "2.5rem", fontWeight: 700, textAlign: "center", color: "white", marginBottom: "3rem", textShadow: "0 0 40px rgba(0,0,0,0.8)" }}
-  >
-    Why PetNest?
-  </motion.h2>
-  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "20px" }}>
-    {[
-      { icon: "🐾", title: "Verified Healthy Pets", text: "Every animal is vet-checked and ready for their new home." },
-      { icon: "🏠", title: "Matched to Your Home", text: "Filter by size, energy and species to find your fit." },
-      { icon: "💛", title: "Loved Before They Arrive", text: "Our pets are raised with care — not just sold." },
-      { icon: "🔒", title: "Secure Checkout", text: "Your order and personal data are always protected." },
-    ].map((f, i) => (
-      <motion.div
-        key={i}
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ delay: i * 0.1 }}
-        className="gradient-border-auto"
-        style={{
-          padding: "24px",
-          borderRadius: "16px",
-          border: "2px solid transparent",
-          backgroundImage: `
-            linear-gradient(#1a1a1a, #1a1a1a),
-            conic-gradient(
-              from var(--gradient-angle, 0deg),
-              #784f10 0%,
-              #E8C547 37%,
-              #fff5c0 50%,
-              #E8C547 63%,
-              #784f10 100%
-            )
-          `,
-          backgroundClip: "padding-box, border-box",
-          backgroundOrigin: "padding-box, border-box",
-        }}
-      >
-        <div style={{ fontSize: "2rem", marginBottom: "16px" }}>{f.icon}</div>
-        <h3 style={{ color: "#ffffff", fontWeight: 700, fontSize: "15px", marginBottom: "8px" }}>{f.title}</h3>
-        <p style={{ color: "#bbbbbb", fontSize: "13px", lineHeight: 1.6 }}>{f.text}</p>
-      </motion.div>
-    ))}
-  </div>
-</section>
-
-      {/* CTA */}
-      <section style={{ maxWidth: "1100px", margin: "0 auto", padding: "3rem 2rem 5rem", position: "relative", zIndex: 1 }}>
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          style={{ background: "#111", border: "1px solid rgba(232,197,71,0.2)", borderRadius: "24px", padding: "4rem 2rem", textAlign: "center", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at center, rgba(232,197,71,0.05) 0%, transparent 60%)", pointerEvents: "none" }} />
-          <p style={{ color: "#E8C547", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "1rem" }}>Ready to find your companion?</p>
-          <h2 style={{ fontSize: "2.5rem", fontWeight: 700, color: "white", marginBottom: "1rem", lineHeight: 1.2, textShadow: "0 0 40px rgba(0,0,0,0.8)" }}>Your forever friend<br />is waiting for you.</h2>
-          <p style={{ color: "#666", fontSize: "14px", maxWidth: "400px", margin: "0 auto 2rem" }}>Browse our full selection of healthy, happy pets — each one ready to join your family.</p>
-          <Link to="/pets" style={{ display: "inline-block", background: "#E8C547", color: "#000", fontWeight: 600, padding: "12px 36px", borderRadius: "999px", fontSize: "14px", textDecoration: "none" }}>
-            Browse All Pets
-          </Link>
+      <section style={{ maxWidth: "1120px", margin: "0 auto", padding: "3rem 2rem 5rem", position: "relative", zIndex: 1 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          style={{
+            minHeight: "430px",
+            borderRadius: "24px",
+            border: `1px solid ${theme.ring}`,
+            overflow: "hidden",
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+            boxShadow: "0 24px 80px rgba(0,0,0,0.34)",
+          }}
+        >
+          <video
+            src="/videos/pet-cta.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+          />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, rgba(0,0,0,0.82), rgba(0,0,0,0.62), rgba(0,0,0,0.82))" }} />
+          <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at center, ${theme.glowStrong}, transparent 58%)`, opacity: 0.45 }} />
+          <div style={{ position: "relative", zIndex: 2, maxWidth: "620px", padding: "3rem 1.5rem" }}>
+            <p style={{ color: theme.accent, fontSize: "12px", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "1rem", fontWeight: 900 }}>
+              Ready to find your NYC companion?
+            </p>
+            <h2 style={{ fontSize: "clamp(2.4rem, 5vw, 4rem)", fontWeight: 900, color: "#fff", marginBottom: "1rem", lineHeight: 1.08, textShadow: "0 3px 24px rgba(0,0,0,0.85)" }}>
+              Your forever friend<br />is waiting for you.
+            </h2>
+            <p style={{ color: "rgba(255,255,255,0.78)", fontSize: "16px", lineHeight: 1.7, maxWidth: "480px", margin: "0 auto 2rem", textShadow: "0 2px 16px rgba(0,0,0,0.9)" }}>
+              Browse healthy, happy pets available around the five boroughs. Each one is ready to join a city home that fits them well.
+            </p>
+            <Link to="/pets" style={{ display: "inline-block", background: theme.accent, color: theme.accentText, fontWeight: 900, padding: "14px 38px", borderRadius: "999px", fontSize: "14px", textDecoration: "none" }}>
+              Browse All Pets
+            </Link>
+          </div>
         </motion.div>
       </section>
 
-      {/* FOOTER */}
-      <footer style={{ borderTop: "1px solid rgba(255,255,255,0.05)", padding: "2rem", display: "flex", justifyContent: "space-between", alignItems: "center", maxWidth: "1100px", margin: "0 auto", position: "relative", zIndex: 1 }}>
-        <div style={{ color: "white", fontWeight: 700, fontSize: "18px" }}>Pet<span style={{ color: "#E8C547" }}>Nest</span> 🐾</div>
-        <p style={{ color: "#444", fontSize: "12px" }}>Find Your Forever Friend.</p>
-        <p style={{ color: "#333", fontSize: "12px" }}>© 2026 PetNest.</p>
+      <footer style={{ borderTop: `1px solid ${theme.faintRing}`, padding: "2rem", display: "flex", justifyContent: "space-between", alignItems: "center", maxWidth: "1120px", margin: "0 auto", position: "relative", zIndex: 1, color: theme.dimText }}>
+        <div style={{ color: theme.text, fontWeight: 900, fontSize: "18px" }}>Pet<span style={{ color: theme.accent }}>Nest</span></div>
+        <p style={{ fontSize: "12px" }}>New York City pets only.</p>
+        <p style={{ fontSize: "12px" }}>2026 PetNest.</p>
       </footer>
     </div>
   );
