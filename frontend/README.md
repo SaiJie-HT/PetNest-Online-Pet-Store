@@ -1,16 +1,121 @@
-# React + Vite
+# PetNest Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+PetNest is a React + Vite storefront for browsing pets, searching products, creating an account, signing in, and managing a local shopping cart. The UI uses animated React pages, Three.js canvas effects, Rive animation, and Tailwind-style utility classes for the pet marketplace experience.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Home page with animated hero, pet-focused marketing sections, and call-to-action links
+- Pet browsing page with demo pet data, category filters, search, and price sorting
+- Product search page with API lookup and demo fallback results
+- Local cart powered by React context and `localStorage`
+- Sign in and registration screens with animated multi-step UI
+- Backend auth integration through Supabase routes
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19
+- Vite
+- React Router
+- Framer Motion
+- Three.js and `@react-three/fiber`
+- Rive via `@rive-app/react-canvas`
+- Tailwind CSS utilities
+- Lucide React
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start the frontend dev server:
+
+```bash
+npm run dev
+```
+
+Vite will print the local URL in the terminal, usually:
+
+```text
+http://localhost:5173/
+```
+
+## Backend Setup
+
+This frontend is designed to work with the backend in the repository root:
+
+```bash
+cd ../backend
+npm install
+npm run dev
+```
+
+The backend requires a `.env` file with Supabase credentials:
+
+```env
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+PORT=8080
+```
+
+The frontend API helper currently sends requests to:
+
+```text
+http://localhost:8080/api
+```
+
+If the backend is running on a different port, update `src/utils/api.js` or set the backend `PORT` to `8080`.
+
+## Available Scripts
+
+```bash
+npm run dev
+```
+
+Runs the Vite development server.
+
+```bash
+npm run build
+```
+
+Builds the app for production into `dist/`.
+
+```bash
+npm run preview
+```
+
+Serves the production build locally.
+
+```bash
+npm run lint
+```
+
+Runs ESLint across the frontend codebase.
+
+## Project Structure
+
+```text
+src/
+  assets/        Static images and animation assets
+  cart/          Cart context and local cart state
+  components/    Shared UI components
+  pages/         Route-level pages
+  utils/         API helper functions
+```
+
+## Main Routes
+
+- `/` - Home
+- `/pets` - Browse pets
+- `/search` - Search products
+- `/cart` - Cart
+- `/login` and `/signin` - Sign in
+- `/signup` and `/register` - Register
+
+## Notes
+
+- The cart is stored locally in the browser under `petnest_cart_v1`.
+- The pet browsing page currently uses sample data in `src/pages/Pets.jsx`.
+- The search page attempts to call the backend first, then falls back to demo products when the backend is unavailable.

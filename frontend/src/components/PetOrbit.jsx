@@ -1,290 +1,259 @@
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
-// NYC Map SVG - simplified street grid style
-const NYCMap = () => (
-  <svg viewBox="0 0 200 200" style={{ width: "100%", height: "100%", opacity: 0.6 }}>
-    {/* Water background */}
-    <rect width="200" height="200" fill="#0A0A0A" />
-    
-    {/* Manhattan island shape */}
-    <polygon points="95,20 110,18 125,25 130,40 128,70 125,100 120,130 115,155 108,175 100,185 92,175 85,155 78,130 72,100 70,70 72,40 80,25"
-      fill="none" stroke="rgba(232,197,71,0.4)" strokeWidth="1" />
-    
-    {/* Manhattan grid streets horizontal */}
-    {[30,45,60,75,90,105,120,135,150,165].map((y, i) => (
-      <line key={`h${i}`} x1="72" y1={y} x2="130" y2={y} stroke="rgba(255,255,255,0.12)" strokeWidth="0.5" />
-    ))}
-    {/* Manhattan grid streets vertical */}
-    {[80,88,96,104,112,120].map((x, i) => (
-      <line key={`v${i}`} x1={x} y1="20" x2={x} y2="185" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
-    ))}
-
-    {/* Brooklyn */}
-    <polygon points="85,175 115,175 130,185 135,195 120,200 80,200 65,195 70,185"
-      fill="none" stroke="rgba(232,197,71,0.25)" strokeWidth="0.8" />
-    {/* Brooklyn streets */}
-    {[182,190].map((y, i) => (
-      <line key={`bh${i}`} x1="68" y1={y} x2="132" y2={y} stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
-    ))}
-
-    {/* Queens - right side */}
-    <polygon points="130,60 130,140 155,145 165,130 168,100 165,70 155,55"
-      fill="none" stroke="rgba(232,197,71,0.2)" strokeWidth="0.8" />
-    {[75,90,105,120,135].map((y, i) => (
-      <line key={`qh${i}`} x1="130" y1={y} x2="165" y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-    ))}
-
-    {/* Bronx - top right */}
-    <polygon points="110,18 140,15 155,25 155,55 130,60 125,40"
-      fill="none" stroke="rgba(232,197,71,0.2)" strokeWidth="0.8" />
-
-    {/* Staten Island - bottom left */}
-    <polygon points="30,150 55,145 65,160 60,180 40,185 25,175 20,160"
-      fill="none" stroke="rgba(232,197,71,0.2)" strokeWidth="0.8" />
-
-    {/* Hudson River */}
-    <path d="M72,20 Q50,60 45,100 Q42,140 50,175" fill="none" stroke="rgba(30,80,150,0.3)" strokeWidth="8" />
-    
-    {/* East River */}
-    <path d="M130,20 Q148,60 150,100 Q148,140 130,175" fill="none" stroke="rgba(30,80,150,0.25)" strokeWidth="6" />
-
-    {/* Borough labels */}
-    <text x="100" y="100" textAnchor="middle" fill="rgba(232,197,71,0.6)" fontSize="6" fontWeight="bold">MANHATTAN</text>
-    <text x="148" y="105" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="4">QUEENS</text>
-    <text x="100" y="192" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="4">BROOKLYN</text>
-    <text x="135" y="40" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="4">BRONX</text>
-    <text x="42" y="168" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="4">STATEN IS.</text>
-
-    {/* Center glow */}
-    <circle cx="100" cy="100" r="8" fill="rgba(232,197,71,0.15)" />
-    <circle cx="100" cy="100" r="4" fill="rgba(232,197,71,0.3)" />
-    <circle cx="100" cy="100" r="2" fill="#E8C547" />
-  </svg>
-);
-
-const PETS = [
-  { id: 1, emoji: "🐕", name: "Mochi", breed: "Shiba Inu", price: "$450", borough: "Brooklyn", neighborhood: "Williamsburg", category: "Dogs", energy: 90 },
-  { id: 2, emoji: "🐈", name: "Luna", breed: "British Shorthair", price: "$320", borough: "Manhattan", neighborhood: "Harlem", category: "Cats", energy: 70 },
-  { id: 3, emoji: "🦜", name: "Kiwi", breed: "Parakeet", price: "$80", borough: "Queens", neighborhood: "Astoria", category: "Birds", energy: 85 },
-  { id: 4, emoji: "🐠", name: "Nemo", breed: "Clownfish", price: "$40", borough: "Staten Island", neighborhood: "St. George", category: "Fish", energy: 50 },
-  { id: 5, emoji: "🐕", name: "Coco", breed: "Golden Retriever", price: "$800", borough: "Bronx", neighborhood: "Riverdale", category: "Dogs", energy: 95 },
-  { id: 6, emoji: "🐈", name: "Bella", breed: "Siamese", price: "$280", borough: "Brooklyn", neighborhood: "Park Slope", category: "Cats", energy: 65 },
-  { id: 7, emoji: "🐹", name: "Peanut", breed: "Hamster", price: "$30", borough: "Queens", neighborhood: "Flushing", category: "Small Pets", energy: 75 },
-  { id: 8, emoji: "🦎", name: "Spike", breed: "Bearded Dragon", price: "$150", borough: "Manhattan", neighborhood: "Upper West Side", category: "Reptiles", energy: 55 },
+const HOUSEHOLD_PETS = [
+  { id: 1, emoji: "🐕", name: "Dogs", match: "Park-ready companions", price: "From $450", space: "Prospect Park, Brooklyn", energy: 92 },
+  { id: 2, emoji: "🐈", name: "Cats", match: "Apartment-window loungers", price: "From $280", space: "Upper West Side, Manhattan", energy: 64 },
+  { id: 3, emoji: "🐇", name: "Rabbits", match: "Gentle indoor roommates", price: "From $90", space: "Astoria, Queens", energy: 58 },
+  { id: 4, emoji: "🦜", name: "Birds", match: "Bright city singers", price: "From $75", space: "Riverdale, Bronx", energy: 78 },
+  { id: 5, emoji: "🐠", name: "Fish", match: "Calm small-space pets", price: "From $25", space: "St. George, Staten Island", energy: 36 },
+  { id: 6, emoji: "🐹", name: "Hamsters", match: "Tiny night explorers", price: "From $30", space: "Flushing, Queens", energy: 70 },
+  { id: 7, emoji: "🐹", name: "Guinea Pigs", match: "Sweet pair-bonded pets", price: "From $45", space: "Park Slope, Brooklyn", energy: 52 },
+  { id: 8, emoji: "🐢", name: "Turtles", match: "Slow and steady friends", price: "From $60", space: "Battery Park City, Manhattan", energy: 42 },
+  { id: 9, emoji: "🦦", name: "Ferrets", match: "Playful supervised pets", price: "From $180", space: "Williamsburg, Brooklyn", energy: 88 },
+  { id: 10, emoji: "🦎", name: "Reptiles", match: "Quiet terrarium companions", price: "From $120", space: "Pelham Bay, Bronx", energy: 48 },
 ];
 
-export default function PetOrbit() {
+function NYCMap({ theme }) {
+  return (
+    <svg viewBox="0 0 220 220" style={{ width: "100%", height: "100%", display: "block" }}>
+      <rect width="220" height="220" fill="transparent" />
+      <path d="M78 26 C58 58 50 96 55 138 C58 166 72 188 90 202" fill="none" stroke="rgba(45,120,185,0.25)" strokeWidth="10" strokeLinecap="round" />
+      <path d="M144 20 C166 62 172 106 160 158 C156 178 148 194 136 208" fill="none" stroke="rgba(45,120,185,0.22)" strokeWidth="8" strokeLinecap="round" />
+      <polygon points="101,20 118,18 132,30 136,52 132,86 127,124 120,160 112,190 103,205 94,188 86,158 78,122 73,84 75,50 84,30" fill="rgba(255,255,255,0.02)" stroke={theme.ring} strokeWidth="1.4" />
+      {[38,54,70,86,102,118,134,150,166,182].map((y) => (
+        <line key={y} x1="78" y1={y} x2="134" y2={y} stroke="rgba(255,255,255,0.11)" strokeWidth="0.6" />
+      ))}
+      {[86,94,102,110,118,126].map((x) => (
+        <line key={x} x1={x} y1="24" x2={x} y2="198" stroke="rgba(255,255,255,0.07)" strokeWidth="0.6" />
+      ))}
+      <polygon points="88,188 123,188 144,202 133,218 78,216 62,203" fill="rgba(255,255,255,0.015)" stroke={theme.ring} strokeWidth="1" opacity="0.74" />
+      <polygon points="137,66 168,58 188,78 190,122 176,150 146,144 133,112" fill="rgba(255,255,255,0.015)" stroke={theme.ring} strokeWidth="1" opacity="0.62" />
+      <polygon points="121,18 158,12 178,28 176,58 139,66 132,34" fill="rgba(255,255,255,0.015)" stroke={theme.ring} strokeWidth="1" opacity="0.62" />
+      <polygon points="34,156 58,148 76,164 70,194 42,202 24,184" fill="rgba(255,255,255,0.015)" stroke={theme.ring} strokeWidth="1" opacity="0.62" />
+      <text x="106" y="110" textAnchor="middle" fill={theme.accent} fontSize="7" fontWeight="800">MANHATTAN</text>
+      <text x="164" y="108" textAnchor="middle" fill="rgba(255,255,255,0.38)" fontSize="6" fontWeight="700">QUEENS</text>
+      <text x="104" y="207" textAnchor="middle" fill="rgba(255,255,255,0.38)" fontSize="6" fontWeight="700">BROOKLYN</text>
+      <text x="155" y="40" textAnchor="middle" fill="rgba(255,255,255,0.38)" fontSize="6" fontWeight="700">BRONX</text>
+      <text x="50" y="181" textAnchor="middle" fill="rgba(255,255,255,0.38)" fontSize="5" fontWeight="700">STATEN IS.</text>
+      <circle cx="110" cy="111" r="8" fill={theme.accent} opacity="0.2" />
+      <circle cx="110" cy="111" r="3" fill={theme.accent} />
+    </svg>
+  );
+}
+
+function CenterBadge({ theme }) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        width: "178px",
+        height: "178px",
+        borderRadius: "50%",
+        border: `1px solid ${theme.ring}`,
+        background: theme.center,
+        boxShadow: `0 0 50px ${theme.glow}`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        zIndex: 10,
+        overflow: "hidden",
+      }}
+    >
+      <NYCMap theme={theme} />
+    </div>
+  );
+}
+
+export default function PetOrbit({ theme }) {
   const [rotation, setRotation] = useState(0);
   const [autoRotate, setAutoRotate] = useState(true);
   const [activeId, setActiveId] = useState(null);
   const timerRef = useRef(null);
 
   useEffect(() => {
-    if (autoRotate) {
-      timerRef.current = setInterval(() => {
-        setRotation(prev => (prev + 0.3) % 360);
-      }, 50);
-    }
+    if (!autoRotate) return undefined;
+
+    timerRef.current = setInterval(() => {
+      setRotation((prev) => (prev + 0.22) % 360);
+    }, 50);
+
     return () => clearInterval(timerRef.current);
   }, [autoRotate]);
 
   const getPosition = (index, total) => {
     const angle = ((index / total) * 360 + rotation) % 360;
-    const radius = 200;
+    const radius = 222;
     const rad = (angle * Math.PI) / 180;
-    const x = radius * Math.cos(rad);
-    const y = radius * Math.sin(rad);
-    const zIndex = Math.round(100 + 50 * Math.cos(rad));
-    const opacity = Math.max(0.4, Math.min(1, 0.4 + 0.6 * ((1 + Math.sin(rad)) / 2)));
-    return { x, y, zIndex, opacity };
+    return {
+      x: radius * Math.cos(rad),
+      y: radius * Math.sin(rad),
+      opacity: Math.max(0.55, Math.min(1, 0.55 + 0.45 * ((1 + Math.sin(rad)) / 2))),
+      zIndex: Math.round(100 + 50 * Math.cos(rad)),
+    };
   };
 
-  const handleClick = (id) => {
-    if (activeId === id) {
-      setActiveId(null);
-      setAutoRotate(true);
-    } else {
-      setActiveId(id);
-      setAutoRotate(false);
-    }
+  const handlePetClick = (id) => {
+    setActiveId((current) => (current === id ? null : id));
+    setAutoRotate(activeId === id);
   };
-
-  const activePet = PETS.find(p => p.id === activeId);
 
   return (
-    <section style={{ maxWidth: "1100px", margin: "0 auto", padding: "4rem 2rem" }}>
-      {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-        <p style={{ color: "#E8C547", fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: "12px" }}>
-          Hyperlocal · New York City
+    <section style={{ maxWidth: "1120px", margin: "0 auto", padding: "5rem 2rem 4rem", position: "relative" }}>
+      <div style={{ textAlign: "center", marginBottom: "2.25rem" }}>
+        <p style={{ color: theme.accent, fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: "12px", fontWeight: 800 }}>
+          Five-borough pet discovery
         </p>
-        <h2 style={{ fontSize: "2.5rem", fontWeight: 700, color: "#ffffff", marginBottom: "12px", textShadow: "0 2px 20px rgba(0,0,0,1)" }}>
-          Find Your Match
+        <h2 style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 800, color: theme.text, marginBottom: "12px" }}>
+          Find a pet near your corner of NYC.
         </h2>
-        <p style={{ color: "#cccccc", fontSize: "14px", maxWidth: "400px", margin: "0 auto" }}>
-          Pets available across all five boroughs — click any pet to learn more
+        <p style={{ color: theme.mutedText, fontSize: "15px", maxWidth: "520px", margin: "0 auto", lineHeight: 1.65 }}>
+          Explore cats, dogs, birds, fish, rabbits, and more across Manhattan, Brooklyn, Queens, the Bronx, and Staten Island.
         </p>
       </div>
 
-      {/* Orbital container */}
-      <div style={{ position: "relative", width: "100%", height: "560px", display: "flex", alignItems: "center", justifyContent: "center" }}
-        onClick={() => { setActiveId(null); setAutoRotate(true); }}>
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "620px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        onClick={() => {
+          setActiveId(null);
+          setAutoRotate(true);
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            width: "444px",
+            height: "444px",
+            borderRadius: "50%",
+            border: `1px solid ${theme.ring}`,
+            boxShadow: `0 0 80px ${theme.glow}`,
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            width: "500px",
+            height: "500px",
+            borderRadius: "50%",
+            border: `1px dashed ${theme.faintRing}`,
+          }}
+        />
 
-        {/* Orbit ring */}
-        <div style={{
-          position: "absolute",
-          width: "400px", height: "400px",
-          borderRadius: "50%",
-          border: "1px solid rgba(232,197,71,0.4)",
-          boxShadow: "0 0 60px rgba(232,197,71,0.08)",
-        }} />
-        <div style={{
-          position: "absolute",
-          width: "420px", height: "420px",
-          borderRadius: "50%",
-          border: "1px dashed rgba(255,255,255,0.05)",
-        }} />
+        <CenterBadge theme={theme} />
 
-        {/* NYC Map center */}
-        <div style={{
-          position: "absolute",
-          width: "160px", height: "160px",
-          borderRadius: "50%",
-          overflow: "hidden",
-          border: "2px solid rgba(232,197,71,0.4)",
-          boxShadow: "0 0 30px rgba(232,197,71,0.15), inset 0 0 20px rgba(0,0,0,0.8)",
-          zIndex: 10,
-          background: "#0A0A0A",
-        }}>
-          <NYCMap />
-        </div>
-
-        {/* Orbiting pets */}
-        {PETS.map((pet, i) => {
-          const pos = getPosition(i, PETS.length);
+        {HOUSEHOLD_PETS.map((pet, index) => {
+          const pos = getPosition(index, HOUSEHOLD_PETS.length);
           const isActive = activeId === pet.id;
 
           return (
             <div
               key={pet.id}
-              onClick={(e) => { e.stopPropagation(); handleClick(pet.id); }}
+              onClick={(event) => {
+                event.stopPropagation();
+                handlePetClick(pet.id);
+              }}
               style={{
                 position: "absolute",
                 transform: `translate(${pos.x}px, ${pos.y}px)`,
-                zIndex: isActive ? 200 : pos.zIndex,
+                zIndex: isActive ? 250 : pos.zIndex,
                 opacity: isActive ? 1 : pos.opacity,
-                transition: "opacity 0.3s",
                 cursor: "pointer",
               }}
             >
-              {/* Glow ring */}
-              <div style={{
-                position: "absolute",
-                inset: "-12px",
-                borderRadius: "50%",
-                background: isActive ? "rgba(232,197,71,0.2)" : "rgba(232,197,71,0.05)",
-                filter: "blur(8px)",
-                transition: "all 0.3s",
-              }} />
-
-              {/* Pet node */}
               <motion.div
-                whileHover={{ scale: 1.2 }}
+                whileHover={{ scale: 1.12 }}
                 style={{
-                  width: "48px", height: "48px",
+                  width: isActive ? "68px" : "58px",
+                  height: isActive ? "68px" : "58px",
                   borderRadius: "50%",
-                  background: isActive ? "#E8C547" : "rgba(10,10,10,0.9)",
-                  border: `2px solid ${isActive ? "#E8C547" : "rgba(232,197,71,0.4)"}`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: "22px",
-                  boxShadow: isActive ? "0 0 20px rgba(232,197,71,0.5)" : "none",
-                  transition: "all 0.3s",
-                  transform: isActive ? "scale(1.3)" : "scale(1)",
+                  border: `1px solid ${isActive ? theme.accent : theme.ring}`,
+                  background: isActive ? theme.accent : theme.node,
+                  color: isActive ? theme.accentText : theme.text,
+                  boxShadow: isActive ? `0 0 32px ${theme.glowStrong}` : "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: isActive ? "28px" : "24px",
+                  fontWeight: 900,
+                  transition: "all 0.25s ease",
                 }}
               >
                 {pet.emoji}
               </motion.div>
 
-              {/* Pet name label */}
-              <div style={{
-                position: "absolute",
-                top: "54px",
-                left: "50%",
-                transform: "translateX(-50%)",
-                whiteSpace: "nowrap",
-                fontSize: "11px",
-                fontWeight: 600,
-                color: isActive ? "#E8C547" : "rgba(255,255,255,0.85)",
-                transition: "all 0.3s",
-              }}>
+              <div
+                style={{
+                  position: "absolute",
+                  top: isActive ? "76px" : "66px",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  whiteSpace: "nowrap",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  color: isActive ? theme.accent : theme.softText,
+                }}
+              >
                 {pet.name}
               </div>
 
-              {/* Info card on click */}
               <AnimatePresence>
                 {isActive && (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.8, y: 10 }}
-                    transition={{ duration: 0.2 }}
-                    onClick={e => e.stopPropagation()}
+                    initial={{ opacity: 0, y: 10, scale: 0.94 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.94 }}
+                    onClick={(event) => event.stopPropagation()}
                     style={{
                       position: "absolute",
-                      top: "70px",
+                      top: "100px",
                       left: "50%",
                       transform: "translateX(-50%)",
-                      width: "200px",
-                      background: "rgba(10,10,10,0.95)",
-                      border: "1px solid rgba(232,197,71,0.3)",
-                      borderRadius: "16px",
+                      width: "230px",
                       padding: "16px",
-                      backdropFilter: "blur(12px)",
-                      boxShadow: "0 8px 32px rgba(0,0,0,0.8)",
-                      zIndex: 300,
+                      borderRadius: "18px",
+                      border: `1px solid ${theme.ring}`,
+                      background: theme.popover,
+                      boxShadow: "0 18px 50px rgba(0,0,0,0.45)",
+                      backdropFilter: "blur(16px)",
                     }}
                   >
-                    {/* Connector line */}
-                    <div style={{
-                      position: "absolute", top: "-12px", left: "50%", transform: "translateX(-50%)",
-                      width: "1px", height: "12px", background: "rgba(232,197,71,0.4)",
-                    }} />
-
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-                      <span style={{ fontSize: "11px", background: "rgba(232,197,71,0.15)", color: "#E8C547", padding: "2px 8px", borderRadius: "999px", fontWeight: 600 }}>
-                        {pet.category}
-                      </span>
-                      <span style={{ fontSize: "16px", fontWeight: 700, color: "#E8C547" }}>{pet.price}</span>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", marginBottom: "10px" }}>
+                      <span style={{ color: theme.accent, fontSize: "12px", fontWeight: 800 }}>{pet.name}</span>
+                      <span style={{ color: theme.text, fontSize: "12px", fontWeight: 700 }}>{pet.price}</span>
                     </div>
-                    <p style={{ color: "white", fontWeight: 700, fontSize: "15px", marginBottom: "8px" }}>{pet.name}</p>
-                    <p style={{ color: "#aaa", fontSize: "13px", lineHeight: 1.6 }}>{pet.breed}</p>
-
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "12px" }}>
-                      <span style={{ fontSize: "12px" }}>📍</span>
-                      <span style={{ color: "#888", fontSize: "12px" }}>{pet.neighborhood}, {pet.borough}</span>
+                    <p style={{ color: theme.text, fontSize: "15px", fontWeight: 800, margin: "0 0 8px" }}>{pet.match}</p>
+                    <p style={{ color: theme.mutedText, fontSize: "13px", lineHeight: 1.55, margin: "0 0 12px" }}>{pet.space}</p>
+                    <div style={{ display: "flex", justifyContent: "space-between", color: theme.mutedText, fontSize: "11px", marginBottom: "5px" }}>
+                      <span>Energy</span>
+                      <span>{pet.energy}%</span>
                     </div>
-
-                    {/* Energy bar */}
-                    <div style={{ marginBottom: "12px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-                        <span style={{ color: "#555", fontSize: "11px" }}>Energy Level</span>
-                        <span style={{ color: "#888", fontSize: "11px" }}>{pet.energy}%</span>
-                      </div>
-                      <div style={{ height: "3px", background: "rgba(255,255,255,0.08)", borderRadius: "999px", overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${pet.energy}%`, background: "linear-gradient(to right, #E8C547, #f0d060)", borderRadius: "999px" }} />
-                      </div>
+                    <div style={{ height: "4px", background: theme.track, borderRadius: "999px", overflow: "hidden", marginBottom: "14px" }}>
+                      <div style={{ width: `${pet.energy}%`, height: "100%", background: theme.accent, borderRadius: "999px" }} />
                     </div>
-
-                    <Link to="/pets" style={{
-                      display: "block", width: "100%", textAlign: "center",
-                      padding: "8px", borderRadius: "999px",
-                      background: "linear-gradient(to right, #E8C547, #f0d060)",
-                      color: "#000", fontWeight: 700, fontSize: "12px",
-                      textDecoration: "none", boxSizing: "border-box",
-                    }}>
-                      View Details →
+                    <Link
+                      to="/pets"
+                      style={{
+                        display: "block",
+                        textAlign: "center",
+                        padding: "9px 12px",
+                        borderRadius: "999px",
+                        background: theme.accent,
+                        color: theme.accentText,
+                        fontWeight: 800,
+                        fontSize: "12px",
+                        textDecoration: "none",
+                      }}
+                    >
+                      Browse pets
                     </Link>
                   </motion.div>
                 )}
@@ -294,9 +263,8 @@ export default function PetOrbit() {
         })}
       </div>
 
-      {/* Bottom hint */}
-      <p style={{ textAlign: "center", color: "#333", fontSize: "12px", marginTop: "-1rem" }}>
-        Click a pet to explore · Click anywhere to resume rotation
+      <p style={{ textAlign: "center", color: theme.dimText, fontSize: "12px", marginTop: "-1.25rem" }}>
+        Click a pet type to compare borough availability and care needs.
       </p>
     </section>
   );

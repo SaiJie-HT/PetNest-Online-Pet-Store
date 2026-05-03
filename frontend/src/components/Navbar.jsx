@@ -4,13 +4,6 @@ import { useCart } from "../cart/CartContext";
 export default function Navbar() {
   const { count } = useCart();
 
-  const linkStyle = {
-    color: "#d1d5db",
-    textDecoration: "none",
-    fontSize: "14px",
-    fontWeight: 500,
-  };
-
   return (
     <nav
       style={{
@@ -41,26 +34,62 @@ export default function Navbar() {
           fontWeight: 800,
         }}
       >
-        Pet<span style={{ color: "#E8C547" }}>Nest</span> 🐾
+        Pet<span style={{ color: "#E8C547" }}>Nest</span>
       </Link>
 
       <div style={{ display: "flex", gap: "22px", alignItems: "center" }}>
-        <Link to="/" style={linkStyle}>Home</Link>
-        <Link to="/pets" style={linkStyle}>Pets</Link>
-        <Link to="/search" style={linkStyle}>Search</Link>
-        <Link to="/login" style={linkStyle}>Sign In</Link>
-        <Link to="/signup" style={linkStyle}>Register</Link>
-
+        {["Home", "Pets", "Search"].map((label) => (
+          <Link
+            key={label}
+            to={label === "Home" ? "/" : `/${label.toLowerCase()}`}
+            style={{ color: "#aaa", textDecoration: "none", fontSize: "13px", fontWeight: 500 }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.color = "white";
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.color = "#aaa";
+            }}
+          >
+            {label}
+          </Link>
+        ))}
+        <Link
+          to="/login"
+          style={{
+            color: "#aaa",
+            textDecoration: "none",
+            fontSize: "13px",
+            border: "1px solid rgba(255,255,255,0.15)",
+            padding: "6px 16px",
+            borderRadius: "999px",
+          }}
+        >
+          Sign In
+        </Link>
+        <Link
+          to="/signup"
+          style={{
+            color: "#000",
+            background: "linear-gradient(to right, #f0d060, #E8C547)",
+            textDecoration: "none",
+            fontSize: "13px",
+            fontWeight: 700,
+            padding: "6px 16px",
+            borderRadius: "999px",
+          }}
+        >
+          Register
+        </Link>
         <Link
           to="/cart"
           style={{
             color: "#000",
             background: "#E8C547",
-            padding: "8px 16px",
-            borderRadius: "999px",
             textDecoration: "none",
-            fontSize: "14px",
+            fontSize: "13px",
             fontWeight: 700,
+            padding: "6px 16px",
+            borderRadius: "999px",
           }}
         >
           Cart ({count})
