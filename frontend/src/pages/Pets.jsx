@@ -131,7 +131,7 @@ export default function Pets() {
   const [pets, setPets] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
-  const [sort, setSort] = useState("default");
+  const [sort, setSort] = useState("newest");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const theme = THEMES[activeTheme];
@@ -163,6 +163,7 @@ export default function Pets() {
     .filter(p => category === "All" || p.category === category)
     .filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
+  if (sort === "newest") filtered = [...filtered];
   if (sort === "low") filtered = [...filtered].sort((a, b) => a.price - b.price);
   if (sort === "high") filtered = [...filtered].sort((a, b) => b.price - a.price);
 
@@ -198,7 +199,7 @@ export default function Pets() {
             className="bg-[#111] border border-white/10 rounded-full px-5 py-3 text-sm text-neutral-400 focus:outline-none focus:border-yellow-400/50"
             style={{ background: theme.surface, borderColor: theme.faintRing, color: theme.mutedText }}
           >
-            <option value="default">Sort by</option>
+            <option value="newest">Newest</option>
             <option value="low">Price: Low to High</option>
             <option value="high">Price: High to Low</option>
           </select>
