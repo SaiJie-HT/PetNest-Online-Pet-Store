@@ -8,17 +8,35 @@ const router = Router();
 //Basic CRUD Operations from class
 //get route needs no permissions like authentication and admin. Anyone is free to access store product listing data
 router.get("/get", async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('Pet')
+            .select()
+            .order('PetName', { ascending: true })
+            .limit(100);
+
+        if (error) {
+            return res.status(500).json({ message: error.message });
+        }
+
+        return res.status(200).json(data);
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+});
+// Get single pet by ID
+router.get("/get/:petID", async (req, res) => {
+    const petIdentifier = req.params.petID;
     const { data, error } = await supabase
         .from('Pet')
-        .select();
-
+        .select()
+        .eq("PetID", petIdentifier)
+        .single();
     if (error) {
         return res.status(500).json({ message: error.message });
     }
-
     return res.status(200).json(data);
 });
-
 //post, put, and delete require userauthentication and admin privillages 
 router.post("/addpetlisting", requireAuth, isAdmin, async (req, res) => {
     const { PetName, PetBreed, PetAge, PetPrice, PetCategory, PetImg, PetDescription } = req.body;

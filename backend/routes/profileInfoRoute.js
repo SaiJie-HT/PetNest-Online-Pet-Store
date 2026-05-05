@@ -22,7 +22,7 @@ router.get("/getUserProfile", async (req, res) => {
 //no need for post, as account creation already initiates the record but does not fully fill entire profile record
 
 //put router to update profile
-//before any purchase is made, user profile record should be filled completely. 
+//before any purchase is made, user profile record should be filled completely.
 router.put("/updateUserProfile", async (req, res) => {
     const user = req.user.id;
 
@@ -36,5 +36,4 @@ router.put("/updateUserProfile", async (req, res) => {
     return res.status(200).json({ message: "User Profile Updated" });
 });
 
-
-
+export default router;
