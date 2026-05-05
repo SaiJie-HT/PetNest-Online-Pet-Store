@@ -1,10 +1,12 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Palette } from "lucide-react";
 import * as THREE from "three";
+import PetCard from "../components/PetCard";
 import PetOrbit from "../components/PetOrbit";
+import { fetchPets } from "../utils/pets";
 
 const THEMES = {
   night: {
@@ -305,7 +307,33 @@ function ThemeDock({ activeTheme, setActiveTheme, theme }) {
 
 export default function Home() {
   const [activeTheme, setActiveTheme] = useState("night");
+  const [featuredPets, setFeaturedPets] = useState([]);
+  const [featuredLoading, setFeaturedLoading] = useState(true);
+  const [featuredError, setFeaturedError] = useState("");
   const theme = THEMES[activeTheme];
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadFeaturedPets() {
+      try {
+        setFeaturedLoading(true);
+        setFeaturedError("");
+        const petsData = await fetchPets();
+        if (active) setFeaturedPets(petsData.slice(0, 6));
+      } catch (err) {
+        if (active) setFeaturedError(err.message || "Unable to load featured pets.");
+      } finally {
+        if (active) setFeaturedLoading(false);
+      }
+    }
+
+    loadFeaturedPets();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <div style={{ background: theme.page, minHeight: "100vh", color: theme.text, overflowX: "hidden" }}>
@@ -358,6 +386,38 @@ export default function Home() {
 
           <HeroVideo />
         </div>
+      </section>
+
+      <section style={{ maxWidth: "1120px", margin: "0 auto", padding: "1rem 2rem 4rem", position: "relative", zIndex: 1 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "end", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
+          <div>
+            <p style={{ color: theme.accent, fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: "10px", fontWeight: 800 }}>
+              Featured pets
+            </p>
+            <h2 style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 850, color: theme.text, margin: 0 }}>
+              Meet a few new friends.
+            </h2>
+          </div>
+          <Link to="/pets" style={{ border: `1px solid ${theme.faintRing}`, color: theme.text, padding: "11px 22px", borderRadius: "999px", fontSize: "14px", textDecoration: "none", fontWeight: 800 }}>
+            View All
+          </Link>
+        </div>
+
+        {featuredLoading ? (
+          <div style={{ border: `1px solid ${theme.faintRing}`, background: theme.surfaceSoft, borderRadius: "16px", padding: "3rem 1rem", textAlign: "center", color: theme.mutedText }}>
+            Loading featured pets...
+          </div>
+        ) : featuredError ? (
+          <div style={{ border: `1px solid ${theme.faintRing}`, background: theme.surfaceSoft, borderRadius: "16px", padding: "3rem 1rem", textAlign: "center", color: "#fca5a5" }}>
+            {featuredError}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featuredPets.map((pet, index) => (
+              <PetCard key={pet.id} pet={pet} index={index} />
+            ))}
+          </div>
+        )}
       </section>
 
       <div style={{ position: "relative", zIndex: 1 }}>
