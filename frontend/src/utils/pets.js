@@ -16,7 +16,7 @@ export function normalizePet(pet) {
 }
 
 export async function fetchPets() {
-  const response = await fetch(`${PETS_API_BASE}/get`);
+  const response = await fetch(`${PETS_API_BASE}`);
 
   if (!response.ok) {
     throw new Error("Unable to load pets. Please try again.");
@@ -27,7 +27,7 @@ export async function fetchPets() {
 }
 
 export async function fetchPetById(petID) {
-  const response = await fetch(`${PETS_API_BASE}/get/${encodeURIComponent(petID)}`);
+  const response = await fetch(`${PETS_API_BASE}/${encodeURIComponent(petID)}`);
 
   if (!response.ok) {
     throw new Error("Unable to load this pet. Please try again.");
