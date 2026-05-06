@@ -7,6 +7,7 @@ import SignIn from "./pages/SignIn";
 import Register from "./pages/Register";
 import SearchPage from "./pages/SearchPage";
 import Cart from "./pages/Cart";
+import OrderSuccess from "./pages/OrderSuccess";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/pets/:petID" element={<PetDetail />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/order-success" element={<OrderSuccess />} />
           <Route path="/login" element={<SignIn />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<Register />} />

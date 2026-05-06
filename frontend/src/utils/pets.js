@@ -1,4 +1,4 @@
-const PETS_API_BASE = "http://localhost:9090/pets";
+const PETS_API_BASE = import.meta?.env?.VITE_PETS_API_BASE ?? "http://localhost:8080/pets";
 
 export function normalizePet(pet) {
   if (!pet) return null;
