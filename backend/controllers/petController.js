@@ -11,6 +11,15 @@ export const getAllPets = async (req, res) => {
     }
 }
 
+export const getPetID = async (req, res) => {
+    try{
+        const pet = await petService.getPetID()
+        return res.status(200).json(pet)
+    } catch (error) {
+        res.status(error.status || 500).json({ message: error.message });
+    }
+}
+
 export const addPet = async (req, res) => {
     try {
         await petService.addPet(req.body)
