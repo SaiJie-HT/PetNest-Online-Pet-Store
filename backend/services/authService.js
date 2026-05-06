@@ -1,7 +1,13 @@
 import supabase from '../database/petDatabase.js';
 
 export const register = async ({ email, password }) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+            emailRedirectTo: 'http://localhost:5173/login' 
+        }
+    });
 
     if (error) throw { status: 400, message: error.message };
 
@@ -22,21 +28,26 @@ export const login = async ({ email, password }) => {
 
     if (password) {
         ({ data, error } = await supabase.auth.signInWithPassword({ email, password }));
-    } else {
-        ({ data, error } = await supabase.auth.signInWithOtp({ email }));
-    }
 
-    if (error) throw { status: 401, message: error.message };
+        if (error) throw { status: 401, message: error.message };
 
-    if (password) {
         return {
             message: "Login Successful",
             token: data.session.access_token,
             user: data.user
         };
-    }
+    } else {
+        ({ data, error } = await supabase.auth.signInWithOtp({ 
+            email,
+            options: {
+                emailRedirectTo: 'http://localhost:5173/login'
+            } 
+        }));
 
-    return { message: "OTP sent successfully" };
+        if (error) throw { status: 401, message: error.message };
+
+        return { message: "OTP sent successfully" };
+    }
 };
 
 export const verifyOtp = async ({ email, otpCode }) => {

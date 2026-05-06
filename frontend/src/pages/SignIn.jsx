@@ -184,29 +184,80 @@ export default function SignIn({ onSignIn }) {
   const codeRefs = useRef([]);
   const [showReverse, setShowReverse] = useState(false);
   const [showForward, setShowForward] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (step === "code") setTimeout(() => codeRefs.current[0]?.focus(), 500);
   }, [step]);
 
-  const handleEmailSubmit = (e) => {
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
-    if (email) setStep("code");
+    if (!email) return;
+    
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("http://localhost:9090/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStep("code");
+      } else {
+        setError(data.message || data.error || "Failed to send code.");
+      }
+    } catch (err) {
+      setError("Network error. Please check your connection.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleCodeChange = (i, val) => {
+  const handleCodeChange = async (i, val) => {
     if (val.length > 1) return;
     const next = [...code];
     next[i] = val;
     setCode(next);
+    setError(null);
+
     if (val && i < 5) codeRefs.current[i + 1]?.focus();
+
     if (i === 5 && val && next.every(d => d)) {
-      setShowReverse(true);
-      setTimeout(() => setShowForward(false), 50);
-      setTimeout(() => {
-        setStep("success");
-        setTimeout(() => { if (onSignIn) onSignIn(); }, 1500);
-      }, 2000);
+      setIsLoading(true);
+      try {
+        const response = await fetch("http://localhost:9090/auth/verifyOtp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, otpCode: next.join("") }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setShowReverse(true);
+          setTimeout(() => setShowForward(false), 50);
+          setTimeout(() => {
+            setStep("success");
+            setTimeout(() => { if (onSignIn) onSignIn(data); }, 1500);
+          }, 2000);
+        } else {
+          setError(data.message || data.error || "Invalid code.");
+          setCode(["", "", "", "", "", ""]);
+          setTimeout(() => codeRefs.current[0]?.focus(), 100);
+        }
+      } catch (err) {
+        setError("Network error. Please check your connection.");
+        setCode(["", "", "", "", "", ""]);
+        setTimeout(() => codeRefs.current[0]?.focus(), 100);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -219,6 +270,7 @@ export default function SignIn({ onSignIn }) {
     setCode(["", "", "", "", "", ""]);
     setShowReverse(false);
     setShowForward(true);
+    setError(null);
   };
 
   return (
@@ -273,6 +325,12 @@ export default function SignIn({ onSignIn }) {
                       <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.08)" }} />
                     </div>
 
+                    {error && (
+                      <div style={{ background: "rgba(224,82,82,0.1)", border: "1px solid rgba(224,82,82,0.5)", color: "#E05252", padding: "10px", borderRadius: "8px", fontSize: "12px", textAlign: "center" }}>
+                        {error}
+                      </div>
+                    )}
+
                     {/* Email form */}
                     <form onSubmit={handleEmailSubmit} style={{ position: "relative" }}>
                       <input
@@ -287,13 +345,15 @@ export default function SignIn({ onSignIn }) {
                         onFocus={e => e.target.style.borderColor = "rgba(232,197,71,0.5)"}
                         onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.1)"}
                       />
-                      <button type="submit" style={{
+                      <button type="submit" disabled={isLoading} style={{
                         position: "absolute", right: "6px", top: "50%", transform: "translateY(-50%)",
                         width: "36px", height: "36px", borderRadius: "50%",
                         background: "linear-gradient(to bottom right, #f0d060, #E8C547)",
-                        border: "none", cursor: "pointer", color: "#000", fontWeight: 700, fontSize: "16px",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                      }}>→</button>
+                        border: "none", cursor: isLoading ? "not-allowed" : "pointer", color: "#000", fontWeight: 700, fontSize: "16px",
+                        display: "flex", alignItems: "center", justifyContent: "center", opacity: isLoading ? 0.7 : 1
+                      }}>
+                        {isLoading ? "..." : "→"}
+                      </button>
                     </form>
                   </div>
 
@@ -319,6 +379,12 @@ export default function SignIn({ onSignIn }) {
                     </h1>
                     <p style={{ color: "#666", fontSize: "14px" }}>We sent a code to <span style={{ color: "#E8C547" }}>{email}</span></p>
                   </div>
+
+                  {error && (
+                    <div style={{ background: "rgba(224,82,82,0.1)", border: "1px solid rgba(224,82,82,0.5)", color: "#E05252", padding: "10px", borderRadius: "8px", fontSize: "12px", textAlign: "center", marginTop: "-10px", marginBottom: "-10px" }}>
+                      {error}
+                    </div>
+                  )}
 
                   {/* Code inputs */}
                   <div style={{
@@ -361,17 +427,18 @@ export default function SignIn({ onSignIn }) {
                       style={{ flex: "0 0 30%", padding: "12px", borderRadius: "999px", background: "white", color: "#000", fontWeight: 600, border: "none", cursor: "pointer", fontSize: "14px" }}>
                       Back
                     </motion.button>
-                    <motion.button whileHover={{ scale: code.every(d => d) ? 1.02 : 1 }} whileTap={{ scale: code.every(d => d) ? 0.98 : 1 }}
-                      disabled={!code.every(d => d)}
+                    <motion.button whileHover={{ scale: (code.every(d => d) && !isLoading) ? 1.02 : 1 }} whileTap={{ scale: (code.every(d => d) && !isLoading) ? 0.98 : 1 }}
+                      disabled={!code.every(d => d) || isLoading}
                       style={{
                         flex: 1, padding: "12px", borderRadius: "999px", fontWeight: 600, fontSize: "14px",
-                        border: "1px solid", cursor: code.every(d => d) ? "pointer" : "not-allowed",
-                        background: code.every(d => d) ? "linear-gradient(to right, #f0d060, #E8C547)" : "rgba(255,255,255,0.03)",
-                        color: code.every(d => d) ? "#000" : "rgba(255,255,255,0.3)",
-                        borderColor: code.every(d => d) ? "transparent" : "rgba(255,255,255,0.08)",
+                        border: "1px solid", cursor: (code.every(d => d) && !isLoading) ? "pointer" : "not-allowed",
+                        background: (code.every(d => d) && !isLoading) ? "linear-gradient(to right, #f0d060, #E8C547)" : "rgba(255,255,255,0.03)",
+                        color: (code.every(d => d) && !isLoading) ? "#000" : "rgba(255,255,255,0.3)",
+                        borderColor: (code.every(d => d) && !isLoading) ? "transparent" : "rgba(255,255,255,0.08)",
                         transition: "all 0.2s",
+                        opacity: isLoading ? 0.7 : 1
                       }}>
-                      Continue
+                      {isLoading ? "Verifying..." : "Continue"}
                     </motion.button>
                   </div>
                 </motion.div>

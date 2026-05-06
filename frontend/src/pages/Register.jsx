@@ -165,6 +165,7 @@ export default function Register({ onRegister }) {
   const [showReverse, setShowReverse] = useState(false);
   const [form, setForm] = useState({ username: "", email: "", password: "", confirm: "" });
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validate = () => {
     const errs = {};
@@ -175,13 +176,38 @@ export default function Register({ onRegister }) {
     return errs;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setErrors({});
-    setShowReverse(true);
-    setTimeout(() => setStep("success"), 2000);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("http://localhost:9090/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: form.username,
+          email: form.email,
+          password: form.password,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setShowReverse(true);
+        setTimeout(() => setStep("success"), 2000);
+        if (onRegister) onRegister(data);
+      } else {
+        setErrors({ server: data.error || "Registration failed. Please try again." });
+      }
+    } catch (error) {
+      setErrors({ server: "Network error. Please ensure the backend is running." });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const inputStyle = (hasError) => ({
@@ -240,6 +266,12 @@ export default function Register({ onRegister }) {
                     <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.08)" }} />
                   </div>
 
+                  {errors.server && (
+                    <div>
+                      {errors.server}
+                    </div>
+                  )}
+
                   <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                     {/* Username */}
                     <div>
@@ -293,9 +325,10 @@ export default function Register({ onRegister }) {
                       style={{
                         width: "100%", padding: "14px", borderRadius: "999px", fontWeight: 700, fontSize: "14px",
                         background: "linear-gradient(to right, #f0d060, #E8C547)", color: "#000", border: "none",
-                        cursor: "pointer", marginTop: "4px",
-                      }}>
-                      Create Account →
+                        cursor: isSubmitting ? "not-allowed" : "pointer", marginTop: "4px", opacity: isSubmitting ? 0.7 : 1
+                      }}
+                      disabled={isSubmitting}>
+                      {isSubmitting ? "Creating Account..." : "Create Account →"}
                     </motion.button>
                   </form>
 
