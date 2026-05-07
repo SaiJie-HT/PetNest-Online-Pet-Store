@@ -180,7 +180,8 @@ function SignInNavbar() {
 export default function SignIn({ onSignIn }) {
   const [email, setEmail] = useState("");
   const [step, setStep] = useState("email");
-  const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const OTP_LENGTH = 6;
+  const [code, setCode] = useState(Array(OTP_LENGTH).fill(""));
   const codeRefs = useRef([]);
   const [showReverse, setShowReverse] = useState(false);
   const [showForward, setShowForward] = useState(true);
@@ -226,9 +227,9 @@ export default function SignIn({ onSignIn }) {
     setCode(next);
     setError(null);
 
-    if (val && i < 5) codeRefs.current[i + 1]?.focus();
+    if (val && i < code.length - 1) codeRefs.current[i + 1]?.focus();
 
-    if (i === 5 && val && next.every(d => d)) {
+    if (i === code.length - 1 && val && next.every(d => d)) {
       setIsLoading(true);
       try {
         const response = await fetch("http://localhost:9090/auth/verifyOtp", {
@@ -248,12 +249,12 @@ export default function SignIn({ onSignIn }) {
           }, 2000);
         } else {
           setError(data.message || data.error || "Invalid code.");
-          setCode(["", "", "", "", "", ""]);
+          setCode(Array(code.length).fill(""));
           setTimeout(() => codeRefs.current[0]?.focus(), 100);
         }
       } catch (err) {
         setError("Network error. Please check your connection.");
-        setCode(["", "", "", "", "", ""]);
+        setCode(Array(code.length).fill(""));
         setTimeout(() => codeRefs.current[0]?.focus(), 100);
       } finally {
         setIsLoading(false);
@@ -267,7 +268,7 @@ export default function SignIn({ onSignIn }) {
 
   const handleBack = () => {
     setStep("email");
-    setCode(["", "", "", "", "", ""]);
+    setCode(Array(code.length).fill(""));
     setShowReverse(false);
     setShowForward(true);
     setError(null);
@@ -412,7 +413,7 @@ export default function SignIn({ onSignIn }) {
                             </div>
                           )}
                         </div>
-                        {i < 5 && <span style={{ color: "rgba(255,255,255,0.15)", fontSize: "20px" }}>|</span>}
+                        {i < code.length - 1 && <span style={{ color: "rgba(255,255,255,0.15)", fontSize: "20px" }}>|</span>}
                       </div>
                     ))}
                   </div>
