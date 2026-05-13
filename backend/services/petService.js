@@ -11,6 +11,7 @@ export const getAllPets = async () => {
         status: 500,
         message: error.message
     }
+
     return data
 }
 

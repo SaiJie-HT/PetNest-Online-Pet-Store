@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useCart } from "../cart/CartContext";
 
-export default function Navbar() {
+export default function Navbar({ user, onSignOut }) {
   const { count } = useCart();
 
   return (
@@ -53,33 +53,56 @@ export default function Navbar() {
             {label}
           </Link>
         ))}
-        <Link
-          to="/login"
-          style={{
-            color: "#aaa",
-            textDecoration: "none",
-            fontSize: "13px",
-            border: "1px solid rgba(255,255,255,0.15)",
-            padding: "6px 16px",
-            borderRadius: "999px",
-          }}
-        >
-          Sign In
-        </Link>
-        <Link
-          to="/signup"
-          style={{
-            color: "#000",
-            background: "linear-gradient(to right, #f0d060, #E8C547)",
-            textDecoration: "none",
-            fontSize: "13px",
-            fontWeight: 700,
-            padding: "6px 16px",
-            borderRadius: "999px",
-          }}
-        >
-          Register
-        </Link>
+
+
+        {!user && <>
+          <Link
+            to="/login"
+            style={{
+              color: "#aaa",
+              textDecoration: "none",
+              fontSize: "13px",
+              border: "1px solid rgba(255,255,255,0.15)",
+              padding: "6px 16px",
+              borderRadius: "999px",
+            }}
+          >
+            Sign In
+          </Link>
+          <Link
+            to="/signup"
+            style={{
+              color: "#000",
+              background: "linear-gradient(to right, #f0d060, #E8C547)",
+              textDecoration: "none",
+              fontSize: "13px",
+              fontWeight: 700,
+              padding: "6px 16px",
+              borderRadius: "999px",
+            }}
+          >
+            Register
+          </Link>
+        </>
+        }
+
+        {user &&
+          <button
+            onClick={() => onSignOut()}
+            style={{
+              color: "#000",
+              background: "#E8C547",
+              textDecoration: "none",
+              fontSize: "13px",
+              fontWeight: 700,
+              padding: "6px 16px",
+              borderRadius: "999px",
+            }}
+          >
+            Sign Out
+          </button>
+        }
+
         <Link
           to="/cart"
           style={{
@@ -94,6 +117,23 @@ export default function Navbar() {
         >
           Cart ({count})
         </Link>
+
+        {user &&
+          <Link
+            to="/profile"
+            style={{
+              color: "white",
+              background: "purple",
+              textDecoration: "none",
+              fontSize: "13px",
+              fontWeight: 700,
+              padding: "6px 16px",
+              borderRadius: "999px",
+            }}
+          >
+              {user.user_metadata?.username || user.email?.split('@')[0] || "Profile"}
+          </Link>
+        }
       </div>
     </nav>
   );
