@@ -16,18 +16,18 @@ export function normalizePet(pet) {
 }
 
 export async function fetchPets() {
-  const response = await fetch(`${PETS_API_BASE}`);
+  const response = await fetch(`${PETS_API_BASE}`, {cache: "no-cache"});
 
   if (!response.ok) {
     throw new Error("Unable to load pets. Please try again.");
   }
-
+  
   const data = await response.json();
   return (Array.isArray(data) ? data : []).map(normalizePet).filter(Boolean).reverse();
 }
 
 export async function fetchPetById(petID) {
-  const response = await fetch(`${PETS_API_BASE}/${encodeURIComponent(petID)}`);
+  const response = await fetch(`${PETS_API_BASE}/${encodeURIComponent(petID)}`, { cache: "no-cache" });
 
   if (!response.ok) {
     throw new Error("Unable to load this pet. Please try again.");
