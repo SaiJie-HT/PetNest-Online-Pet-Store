@@ -1,6 +1,6 @@
-# PetNest — Online Pet Store (Full Stack)
+# PetNest — Online Pet Store 
 
-PetNest is a demo marketplace for browsing pets and placing orders: a **React + Vite** frontend, an **Express** backend, and **Supabase** for data and auth. The cart lives in the browser. After checkout, matching rows in Supabase are marked sold (`IsSold`); they disappear from the public pet APIs but **rows are not deleted**.
+PetNest is an NYC-focused online pet marketplace where you can browse and adopt dogs, cats, birds, rabbits, fish, hamsters, guinea pigs, turtles, ferrets, and reptiles from shelters and rescue organizations across all five boroughs.**.
 
 ## Tech Stack
 
