@@ -1,5 +1,7 @@
-import Navbar from "../components/Navbar";
 import { useCart } from "../cart/CartContext";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import CheckoutModal from "../components/CheckoutModal";
 
 function money(n) {
   const num = Number(n) || 0;
@@ -8,10 +10,22 @@ function money(n) {
 
 export default function Cart() {
   const { items, subtotal, setQty, removeItem, clear } = useCart();
+  const navigate = useNavigate();
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   return (
     <div className="bg-[#0A0A0A] min-h-screen text-white">
-      <Navbar />
+      <CheckoutModal
+        open={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+        items={items}
+        subtotal={subtotal}
+        onClearCart={clear}
+        onSuccess={() => {
+          setCheckoutOpen(false);
+          navigate("/order-success", { replace: true });
+        }}
+      />
       <div className="max-w-5xl mx-auto px-6 pt-28 pb-16">
         <div className="flex items-start justify-between gap-4 mb-8">
           <div>
@@ -106,7 +120,7 @@ export default function Cart() {
               <div className="h-px bg-white/10 mb-4" />
               <button
                 className="w-full bg-yellow-400 text-black font-semibold py-3 rounded-full hover:opacity-90 transition-opacity"
-                onClick={() => alert("Checkout flow not implemented yet.")}
+                onClick={() => setCheckoutOpen(true)}
               >
                 Checkout
               </button>

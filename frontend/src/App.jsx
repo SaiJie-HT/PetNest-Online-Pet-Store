@@ -37,6 +37,7 @@ function AppContent() {
     localStorage.removeItem("petnestToken");
     navigate("/");
   };
+import OrderSuccess from "./pages/OrderSuccess";
 
   return (
     <>
@@ -50,6 +51,9 @@ function AppContent() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/login" element={<SignIn onSignIn={handleSignIn} />} />
           <Route path="/signin" element={<SignIn onSignIn={handleSignIn} />} />
+          <Route path="/order-success" element={<OrderSuccess />} />
+          <Route path="/login" element={<SignIn />} />
+          <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<Register />} />
           <Route path="/register" element={<Register />} />
           <Route path="/profile" element={<ProfilePage user={user}/>} />
