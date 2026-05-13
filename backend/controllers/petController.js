@@ -3,6 +3,7 @@ import * as petService from '../services/petService.js';
 
 export const getAllPets = async (req, res) => {
     try{
+        res.setHeader('Cache-Control', 'no-store');
         const pets = await petService.getAllPets()
         return res.status(200).json(pets)
     } 
@@ -13,6 +14,7 @@ export const getAllPets = async (req, res) => {
 
 export const getPetID = async (req, res) => {
     try{
+        res.setHeader('Cache-Control', 'no-store');
         const pet = await petService.getPetID()
         return res.status(200).json(pet)
     } catch (error) {
